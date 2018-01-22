@@ -22,7 +22,7 @@ var (
 	ErrConnect    = errors.New("failed to connect to RabbitMQ")
 	ErrChannel    = errors.New("failed to open a channel")
 	ErrQueue      = errors.New("failed to declare a queue")
-	ErrPublish    = errors.New("failed to publish a message")
+	ErrRegister   = errors.New("failed to register a consumer")
 )
 
 func main() {
@@ -35,12 +35,44 @@ func main() {
 		failOnError(ErrEnvChannel, ErrEnvChannel.Error())
 	}
 
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial(rabbit_url)
 	failOnError(err, ErrConnect.Error())
 	defer conn.Close()
 
 	ch, err := conn.Channel()
 	failOnError(err, ErrChannel.Error())
 	defer ch.Close()
+
+	q, err := ch.QueueDeclare(
+		rabbit_ch, // name
+		false,     // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
+	)
+	failOnError(err, ErrQueue.Error())
+
+	msgs, err := ch.Consume(
+		q.Name, // queue
+		"",     // consumer
+		true,   // auto-ack
+		false,  // exclusive
+		false,  // no-local
+		false,  // no-wait
+		nil,    // args
+	)
+	failOnError(err, ErrRegister.Error())
+
+	forever := make(chan bool)
+
+	go func() {
+		for d := range msgs {
+			log.Printf("Received a message: %s", d.Body)
+		}
+	}()
+
+	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
+	<-forever
 
 }
