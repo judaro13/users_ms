@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/judaro13/users_ms/store"
 	"github.com/streadway/amqp"
 )
 
@@ -69,6 +70,7 @@ func main() {
 	go func() {
 		for d := range msgs {
 			log.Printf("Received a message: %s", d.Body)
+			user.Store(d.Body)
 		}
 	}()
 
