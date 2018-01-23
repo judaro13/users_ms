@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 
 	_ "github.com/lib/pq"
 )
@@ -25,6 +26,12 @@ var (
 	ErrEmailRequired    = errors.New("no key 'Email' gived")
 	ErrPasswordRequired = errors.New("no key 'password' gived")
 	ErrPhoneRequired    = errors.New("no key 'phoneNumber' gived")
+
+	DBHost     = os.Getenv("DB_HOST")
+	DBPort     = 5432
+	DBUser     = os.Getenv("DB_USER")
+	DBPassword = os.Getenv("DB_PASSWORD")
+	DBName     = os.Getenv("DB_NAME")
 )
 
 func ValidateUser(user *User) error {
@@ -43,18 +50,11 @@ func ValidateUser(user *User) error {
 	return nil
 }
 
-const (
-	dbhost     = "localhost"
-	dbport     = 5432
-	dbuser     = "test"
-	dbpassword = "test"
-	dbname     = "test"
-)
-
 func Save(user *User) error {
+
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		dbhost, dbport, dbuser, dbpassword, dbname)
+		DBHost, DBPort, DBUser, DBPassword, DBName)
 
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
@@ -83,6 +83,7 @@ func Save(user *User) error {
 }
 
 func Store(userJson []byte) {
+
 	user := new(User)
 	err := json.Unmarshal(userJson, user)
 

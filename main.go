@@ -18,23 +18,43 @@ func failOnError(err error, msg string) {
 }
 
 var (
-	ErrEnv        = errors.New("not found RABBIT_PATH  environment variable")
-	ErrEnvChannel = errors.New("not found RABBIT_CHANNEL  environment variable")
+	ErrEnv        = errors.New("not found RABBIT_PATH environment variable")
+	ErrEnvChannel = errors.New("not found RABBIT_CHANNEL environment variable")
+	ErrDBHost     = errors.New("not found DB_HOST environment variable")
+	ErrDBUser     = errors.New("not found DB_USER environment variable")
+	ErrDBPassword = errors.New("not found DB_PASSWORD environment variable")
+	ErrDBName     = errors.New("not found DB_NAME environment variable")
 	ErrConnect    = errors.New("failed to connect to RabbitMQ")
 	ErrChannel    = errors.New("failed to open a channel")
 	ErrQueue      = errors.New("failed to declare a queue")
 	ErrRegister   = errors.New("failed to register a consumer")
 )
 
+func ValidEnvVars() {
+	if len(os.Getenv("RABBIT_PATH")) == 0 {
+		panic(ErrEnv)
+	}
+	if len(os.Getenv("RABBIT_CHANNEL")) == 0 {
+		panic(ErrEnvChannel)
+	}
+	if len(os.Getenv("DB_HOST")) == 0 {
+		panic(ErrDBHost)
+	}
+	if len(os.Getenv("DB_USER")) == 0 {
+		panic(ErrDBUser)
+	}
+	if len(os.Getenv("DB_PASSWORD")) == 0 {
+		panic(ErrDBPassword)
+	}
+	if len(os.Getenv("DB_NAME")) == 0 {
+		panic(ErrDBName)
+	}
+}
+
 func main() {
+	ValidEnvVars()
 	rabbit_url := os.Getenv("RABBIT_PATH")
 	rabbit_ch := os.Getenv("RABBIT_CHANNEL")
-	if len(rabbit_url) == 0 {
-		failOnError(ErrEnv, ErrEnv.Error())
-	}
-	if len(rabbit_ch) == 0 {
-		failOnError(ErrEnvChannel, ErrEnvChannel.Error())
-	}
 
 	conn, err := amqp.Dial(rabbit_url)
 	failOnError(err, ErrConnect.Error())
